@@ -1,794 +1,734 @@
 # Canvas Troubleshooting Assistant
 
-## 1. Project Overview
+A Streamlit-based troubleshooting application for **Instructional Designers, instructors, and course-support staff** who need to investigate Canvas course and assignment configuration issues without needing to understand Canvas APIs, JSON internals, LTI implementation details, or Python.
 
-The Canvas Troubleshooting Assistant is a Python-based application designed to help Instructional Designers identify potential configuration issues within Canvas courses.
-
-The application accepts manually collected Canvas assignment and module data in JSON format. It extracts relevant information, evaluates the data using predefined troubleshooting rules, and displays potential issues with severity levels and recommendations.
-
-The application also integrates PostgreSQL to store assignment information, troubleshooting findings, and previous troubleshooting runs. Users can review historical results and generate downloadable troubleshooting reports.
-
-The primary goal is to make manual Canvas troubleshooting more organized, consistent, and efficient while supporting the Instructional Designer's decision-making.
-
-**Important:** The current version uses manually uploaded JSON files. It does not directly connect to the Canvas API, automatically modify Canvas settings, or repair course issues.
+> **Current status:** Functional prototype moving toward deployment readiness.
 
 ---
 
-## 2. Project Objectives
+## 1. Product Goal
 
-- Identify potential Canvas assignment configuration issues.
-- Review module publishing status and module content.
-- Identify potential external tool configuration concerns.
-- Validate uploaded assignment information.
-- Generate troubleshooting findings and recommendations.
-- Store troubleshooting results in PostgreSQL.
-- Maintain a history of previous troubleshooting runs.
-- Generate downloadable troubleshooting reports.
-- Provide a structured workflow for Instructional Designers.
+The Canvas Troubleshooting Assistant turns Canvas configuration data into a structured diagnosis.
 
----
-
-## 3. Key Features
-
-### JSON File Upload
-Users can upload:
-- Canvas assignment JSON data (required).
-- Canvas module JSON data (optional).
-
-### Data Extraction
-Python extracts relevant information, including:
-- Assignment ID.
-- Course ID.
-- Assignment name.
-- Publishing status.
-- Due date.
-- Unlock date.
-- Lock date.
-- Submission types.
-
-### Input Validation
-The application checks whether required assignment information is available before running troubleshooting checks.
-
-### Troubleshooting Engine
-Predefined Python rules evaluate the uploaded information and identify potential configuration concerns.
-
-### Issue Identification
-The application displays findings with severity levels, including:
-- Warning
-- Review
-
-### Recommendations
-Each finding includes a suggested next step to help the Instructional Designer investigate the issue.
-
-### PostgreSQL Database Integration
-The database stores:
-- Course information.
-- Assignment information.
-- Troubleshooting runs.
-- Troubleshooting findings.
-
-### Troubleshooting History
-Users can review previous troubleshooting runs, including:
-- Run ID and timestamp.
-- Total findings.
-- Warning count.
-- Items needing review.
-- Individual issues and recommendations.
-
-### Report Generation
-The application generates a text report containing assignment information, identified issues, severity levels, and recommendations.
-
-Users can download the report for documentation or further review.
-
----
-
-## 4. Technologies Used
-
-| Technology | Purpose |
-|---|---|
-| Python | Main programming language used to build the application and troubleshooting logic. |
-| Streamlit | Creates the application's web-based user interface, including file uploads, results, and report downloads. |
-| PostgreSQL | Relational database used to store course, assignment, and troubleshooting history information. |
-| Psycopg | Python database adapter that allows the application to communicate with PostgreSQL. |
-| JSON | Data format used to provide Canvas assignment and module information to the application. |
-| python-dotenv | Loads database connection details from the `.env` file rather than storing credentials directly in Python code. |
-| VS Code | Code editor used to develop and manage the project. |
-| Terminal | Used to install dependencies, activate the virtual environment, run commands, and start the application. |
-| Postgres.app | macOS application used to manage and run the local PostgreSQL server. |
-
----
-
-## 5. What Each Application or Tool Does
-
-### Visual Studio Code (VS Code)
-**Purpose:** Code development and project management.
-
-Use VS Code to:
-- Open the Canvas Troubleshooting project folder.
-- Create and edit Python files.
-- Manage folders and project structure.
-- Edit the README and configuration files.
-- Review errors highlighted in the code editor.
-
-**Go here when:** You need to modify Python code, fix indentation, update troubleshooting rules, or edit project files.
-
-### Terminal
-**Purpose:** Execute commands and manage the project environment.
-
-Use Terminal to:
-- Activate the Python virtual environment.
-- Install Python packages.
-- Run Python tests.
-- Start the Streamlit application.
-- Connect to PostgreSQL using `psql`.
-
-**Go here when:** You encounter installation problems, command errors, package issues, or need to start the application.
-
-### Streamlit
-**Purpose:** Run and display the application's user interface.
-
-The application provides:
-- JSON file uploads.
-- Troubleshooting results.
-- Severity summaries.
-- Report generation and downloads.
-- Troubleshooting history.
-
-**Go here when:** You want to use the application, check uploaded data, review findings, or investigate an issue with the interface.
-
-### PostgreSQL / Postgres.app
-**Purpose:** Store and manage application data.
-
-PostgreSQL maintains the application's persistent records, including:
-- Courses.
-- Assignments.
-- Troubleshooting runs.
-- Troubleshooting reports.
-
-Postgres.app provides a convenient way to run and manage PostgreSQL locally on macOS.
-
-**Go here when:** You encounter database connection errors, missing records, incorrect saved results, or database schema problems.
-
-### Python and the Virtual Environment
-**Purpose:** Run the application and manage its dependencies.
-
-The `.venv` directory contains the Python packages installed specifically for this project.
-
-Using a virtual environment helps keep project dependencies separate from other Python projects on the computer.
-
-**Go here when:** Python cannot find a package, an import fails, or the application uses the wrong Python environment.
-
-### Git and `.gitignore`
-**Purpose:** Manage project version control and protect sensitive files.
-
-The `.gitignore` file prevents files such as `.env`, `.venv/`, and `__pycache__/` from being included in Git commits.
-
-**Go here when:** Preparing the project for GitHub or checking whether sensitive configuration files are excluded.
-
----
-
-## 6. Project Structure
+The current workflow is:
 
 ```text
-Canvas-troubleshooter/
-│
-├── app.py
-├── .env
-├── .gitignore
-├── requirements.txt
-├── README.md
-│
-├── data/
-│   ├── sample_assignment.json
-│   └── sample_modules.json
-│
-├── extraction/
-│   └── extract_json.py
-│
-├── database/
-│   ├── connection.py
-│   ├── operations.py
-│   └── schema.sql
-│
-├── troubleshooting/
-│   ├── assignment_checks.py
-│   ├── module_checks.py
-│   ├── lti_checks.py
-│   └── run_checks.py
-│
-├── reports/
-│   └── report_generator.py
-│
-└── test_extraction.py
+Canvas JSON
+    ↓
+Response recognition
+    ↓
+Data extraction / normalization
+    ↓
+Deterministic troubleshooting rules
+    ↓
+Evidence-based diagnosis
+    ↓
+Instructor-friendly recommendation
 ```
 
-### Explanation of Important Files
+The long-term goal is to reduce the manual investigation required when instructors or course designers are told that an assignment, module, or external learning activity is not working.
 
-| File | Responsibility |
-|---|---|
-| `app.py` | Main Streamlit application. Handles uploads, validation, troubleshooting execution, database operations, results, and history display. |
-| `extract_json.py` | Reads and extracts relevant information from assignment JSON data and validates required fields. |
-| `assignment_checks.py` | Contains rules for checking assignment publishing status, due dates, date settings, and submission types. |
-| `module_checks.py` | Checks module publishing status and module content. |
-| `lti_checks.py` | Identifies external tool configuration information that requires further review. |
-| `run_checks.py` | Central troubleshooting engine that calls the individual troubleshooting functions. |
-| `connection.py` | Establishes a connection between Python and PostgreSQL using environment variables. |
-| `operations.py` | Saves assignments and findings and retrieves previous troubleshooting results and history. |
-| `schema.sql` | Defines the database tables and relationships. |
-| `report_generator.py` | Generates the downloadable troubleshooting report. |
-| `requirements.txt` | Lists Python dependencies required by the project. |
-| `.env` | Stores local database connection credentials. |
-| `.gitignore` | Excludes sensitive and unnecessary files from Git. |
-| `test_extraction.py` | Contains tests for the data extraction functionality. |
+The application is **not currently student-facing**.
 
 ---
 
-## 7. Application Workflow
+## 2. Intended Users
 
-The application follows this sequence:
+Primary users:
 
-1. The Instructional Designer manually collects relevant Canvas data.
-2. The user uploads the assignment JSON file and optionally a module JSON file.
-3. Streamlit accepts the uploaded files.
-4. Python extracts relevant assignment information.
-5. The application validates required assignment information and the module data structure.
-6. The troubleshooting engine executes predefined rules.
-7. Potential issues and recommendations are generated.
-8. Assignment information is saved in PostgreSQL.
-9. A new troubleshooting run is created and its findings are saved.
-10. Saved findings are retrieved from PostgreSQL.
-11. The application displays the findings and severity summaries.
-12. A downloadable troubleshooting report is generated.
-13. Previous troubleshooting runs can be reviewed through the history section.
+- Instructional Designers
+- Course Designers
+- Instructors
+- Course-support staff
 
-### Workflow Overview
+These users should not need coding knowledge.
+
+The main interface should answer:
+
+1. **What are we looking at?**
+2. **What problem was detected?**
+3. **What evidence supports that conclusion?**
+4. **What information is still unknown?**
+5. **What should the instructor or designer do next?**
+
+Technical Canvas terminology should be hidden or translated when it is not necessary for the user.
+
+---
+
+## 3. Current Capabilities
+
+The application currently supports:
+
+- Pasting Canvas JSON.
+- Uploading Canvas JSON files.
+- Processing large nested Canvas responses.
+- Recognizing supported Canvas response structures.
+- Extracting assignment information from nested responses.
+- Distinguishing an assignment ID from surrounding object IDs such as assignment-group IDs.
+- Extracting module, navigation, and configuration information where supported.
+- Running assignment, module, and external-tool/LTI troubleshooting checks.
+- Generating evidence-based findings and recommendations.
+- Generating a downloadable troubleshooting report.
+- Optional PostgreSQL persistence for troubleshooting history.
+- Running in **stateless mode without PostgreSQL**.
+
+### Tested behaviors
+
+The project has been tested with:
+
+- Assignment responses.
+- Module responses.
+- Combined assignment/module data.
+- Large Canvas JSON responses.
+- Invalid JSON.
+- Valid but unsupported JSON.
+- External-tool assignments.
+- Published and unpublished assignment states.
+- PostgreSQL-enabled mode.
+- PostgreSQL-disabled/stateless mode.
+
+---
+
+## 4. Important Product Decisions
+
+### Deterministic rules establish facts
+
+Canvas facts should be evaluated with Python rules whenever possible.
+
+Examples:
+
+```python
+published is False
+```
+
+```python
+unlock_at >= lock_at
+```
+
+```python
+"external_tool" in submission_types
+```
+
+An AI/LLM should **not** be responsible for deciding these facts.
+
+### Missing data is not automatically an error
+
+Examples:
+
+```json
+"due_at": null
+```
+
+or:
+
+```json
+"unlock_at": null
+```
+
+do not automatically mean something is broken.
+
+The troubleshooting engine should distinguish:
+
+- Confirmed problem
+- Evidence supporting a troubleshooting path
+- Ruled-out condition
+- Unknown / additional data required
+
+### External-tool detection does not prove an LTI failure
+
+If:
+
+```json
+"submission_types": ["external_tool"]
+```
+
+the application knows that an external learning tool is involved.
+
+It does **not** automatically mean the external tool is broken.
+
+The diagnostic engine should first consider available evidence such as:
+
+- Assignment publication state
+- Availability dates
+- Module visibility
+- Course availability
+- External-tool resource information
+- LTI configuration evidence
+
+### Recommendations should be instructor-friendly
+
+Avoid making the primary recommendation:
+
+> Verify LTI configuration.
+
+Prefer language such as:
+
+> The assignment itself appears available. Because it launches through an external learning tool, verify the module/course visibility and then check the external-tool connection.
+
+Technical evidence can remain available for support staff.
+
+---
+
+## 5. Current Architecture
 
 ```text
-Manual Canvas Data Collection
-             |
-             v
-       JSON Upload
-             |
-             v
-    Data Extraction
-             |
-             v
-     Input Validation
-             |
-             v
-  Troubleshooting Engine
-             |
-             v
-  Identify Potential Issues
-             |
-             v
-       PostgreSQL
-             |
-             v
-   Retrieve Saved Findings
-             |
-             v
-     Streamlit Results
-             |
-             v
-  Report and Run History
+app.py
+  │
+  ├── extraction/
+  │     ├── json_recognizer.py
+  │     └── extract_json.py
+  │
+  ├── troubleshooting/
+  │     ├── assignment_checks.py
+  │     ├── module_checks.py
+  │     ├── lti_checks.py
+  │     └── run_checks.py
+  │
+  ├── reports/
+  │     └── report_generator.py
+  │
+  └── database/                  OPTIONAL
+        ├── connection.py
+        ├── operations.py
+        └── schema.sql
 ```
+
+### Responsibility by component
+
+| Component | Responsibility |
+|---|---|
+| `app.py` | Streamlit UI and application workflow |
+| `extraction/json_recognizer.py` | Determines which supported Canvas structures are present |
+| `extraction/extract_json.py` | Extracts and normalizes useful Canvas information |
+| `troubleshooting/assignment_checks.py` | Assignment availability/submission checks |
+| `troubleshooting/module_checks.py` | Module-related checks |
+| `troubleshooting/lti_checks.py` | External-tool/LTI diagnostic logic |
+| `troubleshooting/run_checks.py` | Coordinates available troubleshooting checks |
+| `reports/report_generator.py` | Generates downloadable troubleshooting reports |
+| `database/connection.py` | Optional PostgreSQL connection |
+| `database/operations.py` | Optional persistence/history operations |
+| `database/schema.sql` | PostgreSQL schema |
 
 ---
 
-## 8. Installation and Setup
+## 6. Canonical Assignment Information
 
-### Prerequisites
+The extractor currently aims to normalize useful assignment information into a structure similar to:
 
-Before running the project, make sure the following are installed:
+```python
+{
+    "assignment_id": "...",
+    "assignment_group_id": "...",
+    "course_id": "...",
+    "name": "...",
+    "published": True,
+    "workflow_state": "published",
+    "due_at": None,
+    "unlock_at": None,
+    "lock_at": None,
+    "submission_types": ["external_tool"],
+    "allowed_attempts": -1,
+    "points_possible": 100.0,
+    "grading_type": "percent",
+    "external_tool": {...}
+}
+```
 
-- Python 3.
-- Visual Studio Code.
-- PostgreSQL.
-- Postgres.app (for macOS users).
-- Terminal access.
+### Important ID distinction
 
-### Step 1: Open the Project
+A Canvas response may contain many fields named `id`.
 
-Open the project folder in VS Code:
+For example:
+
+```text
+Assignment Group ID → 1202969
+Assignment ID       → 6981111
+Course ID           → 242191
+```
+
+Do not identify an assignment by simply selecting the first `id` in a nested JSON response.
+
+The assignment object should be identified from its surrounding structure and assignment-specific fields.
+
+---
+
+## 7. Troubleshooting Result Model
+
+The project is moving toward a standardized diagnostic result such as:
+
+```python
+{
+    "issue": "External tool / LTI troubleshooting required",
+    "category": "LTI / External Tool",
+    "severity": "Information",
+    "confidence": "Needs more data",
+    "evidence": [
+        "Assignment is published",
+        "Resource link ID is present"
+    ],
+    "required_data": [
+        "Module visibility",
+        "Course availability",
+        "LTI tool configuration"
+    ],
+    "recommendation": "..."
+}
+```
+
+Future troubleshooting rules should follow this evidence-based approach.
+
+---
+
+## 8. Database Modes
+
+PostgreSQL is now **optional**.
+
+The application must remain fully usable when persistence is disabled.
+
+### Stateless mode — recommended for initial deployment
+
+```env
+DATABASE_ENABLED=false
+```
+
+Expected behavior:
+
+```text
+Canvas data
+    ↓
+Troubleshooting
+    ↓
+Diagnosis
+    ↓
+Report
+```
+
+No PostgreSQL connection should be required.
+
+### Persistent mode
+
+```env
+DATABASE_ENABLED=true
+```
+
+PostgreSQL can optionally store:
+
+- Courses
+- Assignments
+- Troubleshooting runs
+- Troubleshooting findings
+- Historical results
+
+Database history is an optional feature, not part of the core diagnostic engine.
+
+---
+
+## 9. Local Setup
+
+### Clone the repository
 
 ```bash
-cd ~/Desktop/Canvas-troubleshooter
+git clone https://github.com/apate332/canvas-troubleshooting-assistant.git
+cd canvas-troubleshooting-assistant
 ```
 
-### Step 2: Create a Virtual Environment
-
-If a virtual environment does not already exist:
+### Create a virtual environment
 
 ```bash
 python3 -m venv .venv
-```
-
-Activate it:
-
-```bash
 source .venv/bin/activate
 ```
 
-### Step 3: Install Dependencies
-
-Install the required packages:
+### Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4: Configure PostgreSQL
+### Start the application
 
-Start the PostgreSQL server using Postgres.app.
-
-Make sure PostgreSQL is running and that the database exists.
-
-The current project database is:
-
-```text
-canvas_troubleshooter
+```bash
+python -m streamlit run app.py
 ```
 
-The database connection uses:
-- Host: `localhost`
-- Port: `5432`
-- Database: `canvas_troubleshooter`
-- User: `postgres`
+The application should work in stateless mode without PostgreSQL.
 
-If setting up the project on a new computer, create the database and apply the SQL statements in `database/schema.sql` and any required migrations.
+---
 
-Do not run the schema or migration statements repeatedly without checking whether the tables and columns already exist.
+## 10. Optional PostgreSQL Setup
 
-### Step 5: Configure Environment Variables
+Only configure PostgreSQL if troubleshooting history/persistence is required.
 
-Create or update the `.env` file in the project root.
-
-Add the following variables:
+Example local `.env`:
 
 ```env
+DATABASE_ENABLED=true
+
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=canvas_troubleshooter
 DB_USER=postgres
-DB_PASSWORD=your_postgresql_password
+DB_PASSWORD=your_local_password
 ```
 
-Replace the password placeholder with the PostgreSQL password configured on your computer.
+Never commit `.env`.
 
-Do not share the `.env` file or upload it to GitHub.
-
-### Step 6: Verify the Database Connection
-
-Run:
-
-```bash
-.venv/bin/python -c "from database.connection import get_connection; conn = get_connection(); print('Database connection successful!'); conn.close()"
-```
-
-Expected output:
+Apply the database schema from:
 
 ```text
-Database connection successful!
+database/schema.sql
 ```
 
-### Step 7: Start the Application
+When PostgreSQL is disabled:
 
-Run:
-
-```bash
-.venv/bin/python -m streamlit run app.py
+```env
+DATABASE_ENABLED=false
 ```
 
-Streamlit will provide a local address, usually:
-
-```text
-http://localhost:8501
-```
-
-Open the address in your browser.
+the application should skip saving/history operations and continue troubleshooting normally.
 
 ---
 
-## 9. How to Use the Application
+## 11. Security Rules
 
-1. Open the Streamlit application in your browser.
-2. Upload a valid assignment JSON file.
-3. Optionally upload a module JSON file.
-4. Click **Start Troubleshooting**.
-5. Review the identified issues.
-6. Check the severity and recommendations for each finding.
-7. Review the generated troubleshooting report.
-8. Download the report if needed.
-9. Scroll down to Troubleshooting History to review previous runs.
+Never commit:
 
-### Sample Data
+- `.env`
+- Database passwords
+- GitHub personal access tokens
+- Canvas access tokens
+- Real student data
+- Real Canvas responses containing sensitive information
+- `secure_params`
+- Production credentials
+- Local virtual environments
 
-The project includes sample files:
+The repository should contain application code and safe configuration/documentation only.
 
-- `data/sample_assignment.json`
-- `data/sample_modules.json`
-
-These files can be used to test the application.
-
-The sample assignment intentionally contains an unpublished assignment and uses an external tool submission type. The sample module data also includes an unpublished module, an unpublished module item, and an empty module.
-
-These conditions are included to demonstrate how the troubleshooting rules identify potential concerns.
+Real Canvas troubleshooting data should be supplied at runtime and handled according to organizational policy.
 
 ---
 
-## 10. Understanding Troubleshooting Severity
+## 12. Current UI Direction
 
-The application currently uses two severity levels.
+The application should feel like a **diagnostic workspace**, not an analytics dashboard.
 
-### Warning
+The intended information hierarchy is:
 
-A Warning indicates a potential configuration issue that should be investigated.
+```text
+Canvas Troubleshooting Assistant
 
-Example:
+Input
 
-An assignment is unpublished.
+Assignment
+  Assignment name
+  Course ID
+  Assignment ID
+  Status
 
-Suggested action: Verify whether the assignment is intended to be available to students.
+Diagnosis
+  What appears wrong
+  What we know
+  What still needs checking
+  Recommended next step
 
-### Review
+Assignment Details
+  Optional technical/configuration information
 
-A Review indicates that the available information is incomplete or requires additional verification.
+Download Report
 
-Example:
+Previous Runs
+  Only when persistence is enabled
+```
 
-An assignment uses an external tool submission type, but the supplied information does not include an external tool launch URL.
+Avoid unnecessary KPI/statistic cards that do not help troubleshoot the current issue.
 
-Suggested action: Verify the external tool configuration in Canvas.
-
-**Important:** A finding is not always proof that something is broken. The Instructional Designer should verify the relevant setting in Canvas before making changes.
+The current diagnosis should be visually dominant.
 
 ---
 
-## 11. Common Problems and How to Resolve Them
+## 13. Testing Philosophy
 
-This section covers common development, setup, and application issues.
+Do not judge a change only by whether Python runs.
 
-### Problem 1: ModuleNotFoundError
+Each troubleshooting rule should be tested against controlled scenarios.
 
-**Example:**
+Examples:
 
-```text
-ModuleNotFoundError: No module named 'streamlit'
-```
-
-**Possible cause:**
-
-The required package is not installed in the active Python environment, or the wrong Python interpreter is being used.
-
-**How to fix it:**
-
-Activate the virtual environment:
-
-```bash
-source .venv/bin/activate
-```
-
-Install the dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Alternatively, use the project's Python interpreter:
-
-```bash
-.venv/bin/python -m pip install -r requirements.txt
-```
-
-### Problem 2: PostgreSQL Connection Error
-
-**Example:**
-
-```text
-connection refused
-```
-
-**Possible causes:**
-
-- PostgreSQL is not running.
-- The port is incorrect.
-- The database server is unavailable.
-
-**How to fix it:**
-
-1. Open Postgres.app.
-2. Verify that the PostgreSQL server is running.
-3. Check that the configured port is `5432`.
-4. Verify that the database exists.
-5. Test the connection using the Python connection test.
-
-### Problem 3: Password Authentication Failed
-
-**Example:**
-
-```text
-password authentication failed for user "postgres"
-```
-
-**Possible cause:**
-
-The password in `.env` does not match the PostgreSQL password.
-
-**How to fix it:**
-
-1. Open the `.env` file.
-2. Verify the `DB_USER` and `DB_PASSWORD` values.
-3. Confirm that the password matches the PostgreSQL user's configured password.
-4. Save the file.
-5. Restart the application and test the connection again.
-
-Never paste database passwords into shared messages or commit them to GitHub.
-
-### Problem 4: Missing Environment Variables
-
-**Example:**
-
-```text
-connection failed
-```
-
-**Possible cause:**
-
-The `.env` file is missing, incorrectly named, or not being loaded from the project root.
-
-**How to fix it:**
-
-1. Verify that the file is named `.env`, not `.env.txt`.
-2. Place it in the project root.
-3. Check that `connection.py` imports and calls `load_dotenv()`.
-4. Verify that the variable names match the names used in `os.getenv()`.
-
-### Problem 5: Invalid JSON File
-
-**Example:**
-
-```text
-JSONDecodeError
-```
-
-**Possible cause:**
-
-The uploaded file contains invalid JSON syntax.
-
-**How to fix it:**
-
-1. Open the JSON file in VS Code.
-2. Check for missing commas.
-3. Check for missing quotation marks.
-4. Verify that brackets and braces are correctly paired.
-5. Make sure the file contains valid JSON rather than Python dictionary syntax.
-
-### Problem 6: Missing Assignment Information
-
-**Example:**
-
-```text
-Assignment file is missing required information.
-```
-
-**Possible cause:**
-
-The uploaded assignment JSON does not contain required information such as the assignment ID, name, or publishing status.
-
-**How to fix it:**
-
-1. Open the assignment JSON file.
-2. Verify that the required fields exist.
-3. Check that the field names match what the extraction code expects.
-4. Upload the corrected file again.
-
-### Problem 7: Incorrect Module JSON Structure
-
-**Example:**
-
-```text
-The module JSON must contain a list of modules.
-```
-
-**Possible cause:**
-
-The uploaded module JSON does not contain a list of module objects.
-
-**How to fix it:**
-
-Make sure the JSON file contains a list, with each module represented as an object.
-
-Also verify that the module data follows the structure expected by `module_checks.py`.
-
-### Problem 8: Database Table or Column Does Not Exist
-
-**Example:**
-
-```text
-relation does not exist
-```
-
-or
-
-```text
-column does not exist
-```
-
-**Possible cause:**
-
-The database schema has not been created or a required migration has not been applied.
-
-**How to fix it:**
-
-1. Connect to the `canvas_troubleshooter` database.
-2. Check whether the required tables exist.
-3. Review `database/schema.sql`.
-4. Check whether any required migrations have been applied.
-5. Apply only the missing schema changes.
-
-Avoid dropping tables because doing so may delete saved troubleshooting history.
-
-### Problem 9: Import Errors Between Python Files
-
-**Example:**
-
-```text
-ImportError
-```
-
-**Possible cause:**
-
-A function name is incorrect, a function is missing, or a project import path is incorrect.
-
-**How to fix it:**
-
-1. Check the function name in the original Python file.
-2. Verify that the function is defined.
-3. Check the import statement.
-4. Confirm that the project folder structure is correct.
-5. Run the application from the project root directory.
-
-### Problem 10: Streamlit Application Does Not Start
-
-**Possible causes:**
-
-- Streamlit is not installed.
-- The terminal is in the wrong directory.
-- The Python environment is incorrect.
-- Another application is already using the requested port.
-
-**How to fix it:**
-
-Run:
-
-```bash
-.venv/bin/python -m streamlit run app.py
-```
-
-If necessary, check the terminal output for the exact error and address that issue before restarting.
-
-### Problem 11: Troubleshooting History Is Empty
-
-**Possible causes:**
-
-- No troubleshooting run has been saved.
-- The application is connected to a different database.
-- The assignment ID does not match the saved records.
-- The database query is not returning the expected records.
-
-**How to fix it:**
-
-1. Verify that the troubleshooting run was saved successfully.
-2. Check the database connection settings.
-3. Verify the assignment ID.
-4. Review the history retrieval function in `database/operations.py`.
-
-### Problem 12: Findings Are Incorrect or Missing
-
-**Possible causes:**
-
-- The uploaded JSON data does not contain the expected fields.
-- The troubleshooting rule has an incorrect condition.
-- The field name in the extraction function does not match the uploaded data.
-- The rule is not being called by `run_checks.py`.
-
-**How to fix it:**
-
-1. Inspect the uploaded JSON data.
-2. Review the extraction logic in `extraction/extract_json.py`.
-3. Review the appropriate rule file in `troubleshooting/`.
-4. Check that the rule is included in `troubleshooting/run_checks.py`.
-5. Test the rule using sample data.
-
----
-
-## 12. Where to Go for Different Types of Issues
-
-Use this table as a quick troubleshooting reference.
-
-| Issue | Where to investigate |
+| Scenario | Expected behavior |
 |---|---|
-| Application layout or upload problems | `app.py` and Streamlit |
-| Assignment data extraction problems | `extraction/extract_json.py` |
-| Assignment publishing or due-date checks | `troubleshooting/assignment_checks.py` |
-| Module publishing or content checks | `troubleshooting/module_checks.py` |
-| External tool concerns | `troubleshooting/lti_checks.py` |
-| Troubleshooting rules not executing | `troubleshooting/run_checks.py` |
-| Database connection problems | `database/connection.py` and `.env` |
-| Saving or retrieving findings | `database/operations.py` |
-| Missing database tables or columns | `database/schema.sql` and database migrations |
-| Report formatting problems | `reports/report_generator.py` |
-| Missing Python packages | `requirements.txt` and `.venv` |
-| Application startup problems | Terminal and Streamlit |
-| Git or credential protection problems | `.gitignore` |
+| Published external-tool assignment | Do not claim LTI is broken; identify next evidence required |
+| Unpublished assignment | Confirm publishing issue |
+| Unlock date after lock date | Confirm availability-date problem |
+| Missing due date | Do not automatically report an error |
+| Non-LTI assignment | Do not produce LTI findings |
+| Missing publishing information | Report that publishing status cannot be verified |
+| Unsupported valid JSON | Recognize as unsupported/unknown without crashing |
+| Invalid JSON | Fail gracefully |
 
-### Recommended Troubleshooting Order
-
-When something goes wrong:
-
-1. Read the complete error message in the terminal.
-2. Identify which part of the application is affected.
-3. Locate the corresponding Python file using the table above.
-4. Check the uploaded JSON data if the issue relates to missing or incorrect information.
-5. Check the database connection if information cannot be saved or retrieved.
-6. Correct the issue and run the application again.
-7. Test the change using the sample JSON files.
+When changing extraction logic, verify that the correct nested Canvas object is selected.
 
 ---
 
-## 13. Current Limitations
+## 14. Deployment Direction
 
-The current version is a functional prototype and has the following limitations:
+The recommended deployment progression is:
 
-1. **Manual Data Collection:** Users must collect and upload Canvas JSON data manually.
-2. **No Direct Canvas API Integration:** The application does not currently retrieve course information directly from Canvas.
-3. **No Automatic Repairs:** The application identifies potential issues but does not change Canvas settings.
-4. **Rule-Based Detection:** Troubleshooting depends on predefined Python conditions rather than an AI model.
-5. **Limited Data Coverage:** Only the fields included in the uploaded JSON data can be evaluated.
-6. **External Tool Verification:** The application can flag missing external tool information for review but cannot independently confirm whether an LTI integration is functioning.
-7. **Sample Data Limitations:** Sample JSON files demonstrate the expected workflow, but actual Canvas API responses should be validated before broader deployment.
-8. **Limited Severity Levels:** The current system uses Warning and Review rather than a more extensive severity classification.
+```text
+CURRENT
+Streamlit + JSON + Rules
+        ↓
+PHASE 1
+Stateless + deployment-ready dependencies
+        ↓
+PHASE 2
+Docker + company-approved hosting + authentication
+        ↓
+PHASE 3
+Canvas API integration
+        ↓
+PHASE 4
+Optional LLM assistance
+        ↓
+MATURE PRODUCT
+Automated Canvas evidence retrieval
++ deterministic diagnosis
++ instructor-friendly explanation
++ escalation support
+```
 
-The application is intended to support Instructional Designers, not replace their judgment or Canvas verification.
+### Phase 1 — Current priority
+
+- Keep PostgreSQL optional.
+- Simplify `requirements.txt`.
+- Ensure a fresh environment can run the application.
+- Improve automated tests.
+- Dockerize the application.
+- Update documentation.
+
+### Phase 2 — Internal pilot
+
+Work with the organization to determine:
+
+- Hosting platform
+- Authentication / SSO
+- Network access
+- Logging requirements
+- Data-handling requirements
+- Production ownership
+
+### Phase 3 — Canvas API integration
+
+The long-term user experience should not require instructors to understand or manually collect JSON.
+
+With approved Canvas API access, the application could retrieve the necessary:
+
+- Course information
+- Assignment information
+- Module/module-item information
+- Availability settings
+- External-tool information
+
+Only the minimum permissions required for troubleshooting should be requested.
+
+### Phase 4 — LLM assistance
+
+An LLM may later be used to:
+
+1. Understand an instructor's natural-language problem description.
+2. Select the appropriate troubleshooting path.
+3. Convert structured evidence into a clear explanation.
+4. Help create an escalation summary when the issue cannot be resolved automatically.
+
+The LLM should **not replace deterministic Canvas checks**.
+
+Preferred architecture:
+
+```text
+Instructor problem description
+        ↓
+LLM: understand problem type
+        ↓
+Canvas evidence
+        ↓
+Deterministic rule engine
+        ↓
+Structured facts / unknowns
+        ↓
+LLM: explain and recommend
+        ↓
+Instructor-friendly diagnosis
+```
+
+Do not send large raw Canvas responses to an LLM when normalized evidence is sufficient.
+
+Any production LLM integration must follow organizational privacy/security approval.
 
 ---
 
-## 14. Future Improvements
+## 15. Known Limitations
 
-Potential future enhancements include:
+Current limitations include:
 
-- Direct Canvas API integration.
-- Automated retrieval of assignment and module information.
-- Expanded troubleshooting rules for additional Canvas course components.
-- Improved validation of real Canvas API responses.
-- Additional severity levels and issue prioritization.
-- Comparison of troubleshooting runs to identify recurring or resolved issues.
-- Improved dashboard design and visual summaries.
-- More comprehensive testing with real course data.
-- User authentication and role-based access.
-- More detailed reports and export formats.
-- Improved logging and error handling.
+- Canvas data is still supplied manually.
+- No direct Canvas API integration.
+- No automatic changes are made to Canvas.
+- Troubleshooting coverage is not complete.
+- Diagnosis is limited by the evidence present in the supplied data.
+- External-tool/LTI health cannot be fully verified from assignment data alone.
+- Some Canvas response structures still require additional validation.
+- The application is a prototype and has not yet completed an internal production deployment review.
 
 ---
 
-## 15. Security Considerations
+## 16. Git / Team Workflow
 
-- Store database credentials in `.env`.
-- Never hardcode passwords in Python files.
-- Keep `.env` excluded through `.gitignore`.
-- Do not upload `.env` to GitHub.
-- Avoid sharing real student information or sensitive course data in sample files.
-- Use appropriate database permissions when deploying the application beyond a local development environment.
+Before starting work:
+
+```bash
+git pull
+```
+
+For significant changes, create a branch:
+
+```bash
+git checkout -b feature/descriptive-name
+```
+
+After making changes:
+
+```bash
+git status
+git add .
+git commit -m "Describe the change"
+git push -u origin feature/descriptive-name
+```
+
+Use a Pull Request when merging significant changes into `main`.
+
+Never commit credentials or real Canvas/student data.
 
 ---
 
-## 16. Project Summary
+## 17. Current Development Priorities
 
-The Canvas Troubleshooting Assistant provides a structured approach to identifying potential Canvas configuration issues.
+Work in approximately this order:
 
-By combining Python-based data extraction, predefined troubleshooting rules, Streamlit, and PostgreSQL, the application helps Instructional Designers review course information, identify potential concerns, access recommendations, and maintain a history of troubleshooting results.
+1. Verify stateless mode remains stable.
+2. Simplify and validate `requirements.txt`.
+3. Test installation in a fresh Python environment.
+4. Expand controlled diagnostic tests.
+5. Standardize diagnostic output across assignment/module/LTI checks.
+6. Improve instructor-facing wording.
+7. Add Docker configuration.
+8. Build and run the Docker image locally.
+9. Document company deployment requirements.
+10. Plan Canvas API integration with Canvas administrators.
+11. Evaluate an LLM layer only after the deterministic diagnostic foundation and organizational data requirements are clear.
 
-The project demonstrates how a manual troubleshooting workflow can be organized into a reusable application that supports more consistent course reviews.
+---
 
-**The overall objective is to help Instructional Designers troubleshoot more efficiently while keeping the final decisions and corrective actions under their control.**
+# AI / ChatGPT Handoff Context
+
+If you are an AI assistant helping a collaborator continue this project, use the following as the project's source-of-truth context.
+
+## Product identity
+
+This is an **instructor/course-designer Canvas troubleshooting assistant**.
+
+It is **not currently a student-facing chatbot**.
+
+The goal is to help nontechnical instructors, Instructional Designers, and course-support staff investigate Canvas configuration problems efficiently.
+
+## Architecture rules
+
+1. **Do not replace deterministic troubleshooting rules with an LLM.**
+2. Use Python/rules to establish Canvas facts.
+3. Treat missing evidence as unknown rather than automatically as an error.
+4. Do not assume an external-tool assignment means LTI is broken.
+5. Preserve evidence behind every diagnosis.
+6. Recommendations should distinguish confirmed problems from possible causes and missing evidence.
+7. Keep PostgreSQL optional.
+8. The application must work with `DATABASE_ENABLED=false`.
+9. Do not expose database implementation details in the primary instructor UI.
+10. Do not require the user to understand JSON/LTI/API terminology in the final product.
+11. Do not commit or request real credentials, access tokens, student data, or sensitive Canvas data.
+12. Do not confuse assignment-group IDs with assignment IDs.
+13. Do not add charts/statistics unless they directly improve troubleshooting.
+14. The current JSON workflow is a prototype input mechanism; the long-term direction is approved Canvas API integration.
+15. An eventual LLM should operate primarily on structured/normalized diagnostic evidence, not raw large Canvas payloads.
+
+## Current development stage
+
+The project is transitioning from a working local prototype to **deployment readiness**.
+
+The immediate focus is:
+
+```text
+Stateless operation
+    ↓
+Clean dependencies
+    ↓
+Fresh-environment testing
+    ↓
+Automated diagnostic tests
+    ↓
+Docker
+    ↓
+Internal deployment planning
+```
+
+Do not jump directly to Canvas API or LLM integration before stabilizing this foundation.
+
+## When helping with code
+
+Before proposing a change:
+
+1. Inspect the existing relevant file/function.
+2. Preserve working behavior unless the change explicitly replaces it.
+3. Make one architectural change at a time.
+4. Run syntax/tests after changes.
+5. Test behavior with controlled Canvas scenarios.
+6. Avoid inventing Canvas semantics that have not been verified.
+7. Prefer clear, maintainable Python over clever abstractions.
+8. Keep the instructor-facing UI simple and human-readable.
+
+## Key files
+
+Start here depending on the task:
+
+```text
+UI / workflow
+→ app.py
+
+Recognition
+→ extraction/json_recognizer.py
+
+Canvas extraction / normalization
+→ extraction/extract_json.py
+
+Assignment diagnostics
+→ troubleshooting/assignment_checks.py
+
+Module diagnostics
+→ troubleshooting/module_checks.py
+
+External-tool / LTI diagnostics
+→ troubleshooting/lti_checks.py
+
+Check orchestration
+→ troubleshooting/run_checks.py
+
+Optional persistence
+→ database/connection.py
+→ database/operations.py
+
+Reports
+→ reports/report_generator.py
+```
+
+## Recommended first question for a new AI session
+
+After reading this README, inspect the current Git status and the specific file related to the requested task before suggesting code changes.
+
+The repository may have progressed beyond this README, so confirm the current implementation rather than assuming every future-planning item has already been completed.

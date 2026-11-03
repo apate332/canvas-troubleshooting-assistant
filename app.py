@@ -13,7 +13,9 @@ from database.operations import (
     get_findings,
     get_troubleshooting_history,
 )
+from database.connection import is_database_enabled
 
+database_enabled = is_database_enabled()
 
 st.set_page_config(
     page_title="Canvas Troubleshooting Assistant",
@@ -477,6 +479,7 @@ if input_sources and st.button("Start Troubleshooting", type="primary"):
     saved_findings = findings
     run_id = None
 
+
     can_save_assignment = (
         isinstance(assignment, dict)
         and assignment.get("assignment_id") is not None
@@ -485,17 +488,29 @@ if input_sources and st.button("Start Troubleshooting", type="primary"):
         and assignment.get("published") is not None
     )
 
-    if can_save_assignment:
+    if can_save_assignment and database_enabled:
+
         try:
             save_assignment(assignment)
+
             run_id = save_findings(
                 assignment["assignment_id"],
-                findings,
+                findings
             )
+
             saved_findings = get_findings(run_id)
-            st.success(f"Troubleshooting run {run_id} saved to PostgreSQL.")
+
         except Exception as error:
-            st.error(f"Could not save results to PostgreSQL: {error}")
+            st.warning(
+                "The troubleshooting analysis completed successfully, "
+                "but the result could not be saved."
+            )
+    elif can_save_assignment and not database_enabled:
+            # Stateless mode.
+            # The troubleshooting result remains available for
+            # display and report generation without being saved.
+            run_id = None
+
     elif assignment is not None:
         st.info(
             "Assignment data was recognized, but it is missing fields "
@@ -541,7 +556,7 @@ if input_sources and st.button("Start Troubleshooting", type="primary"):
             use_container_width=True,
         )
 
-    if run_id is not None:
+    if database_enabled and run_id is not None:
         with st.expander("Previous troubleshooting runs"):
             try:
                 history = get_troubleshooting_history(
