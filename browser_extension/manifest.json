@@ -1,0 +1,14 @@
+{
+    "manifest_version": 3,
+    "name": "Canvas Troubleshooting Assistant",
+    "version": "0.1.0",
+    "description": "Helps instructors and course designers collect Canvas activity context for troubleshooting.",
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "Canvas Troubleshooting Assistant"
+    }
+}
