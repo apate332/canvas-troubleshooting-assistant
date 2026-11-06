@@ -1,29 +1,89 @@
+import logging
+import os
+from typing import Any
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Any
-
-from troubleshooting.run_checks import (
-    run_checks_on_extracted_data
-)
+from dotenv import load_dotenv
 
 from ai.createai_client import explain_diagnosis
+from troubleshooting.run_checks import (
+    run_checks_on_extracted_data,
+)
 
-app = FastAPI(
-    title="Canvas Troubleshooting API"
+load_dotenv()
+
+# --------------------------------------------------
+# LOGGING
+# --------------------------------------------------
+
+logging.basicConfig(
+    level=logging.INFO
+)
+
+logger = logging.getLogger(
+    "canvas_troubleshooter"
 )
 
 
 # --------------------------------------------------
-# DEVELOPMENT CORS
+# APPLICATION
 # --------------------------------------------------
+
+app = FastAPI(
+    title="Canvas Troubleshooting API",
+    version="0.1.0",
+)
+
+
+# --------------------------------------------------
+# ENVIRONMENT
+# --------------------------------------------------
+
+environment = os.getenv(
+    "ENVIRONMENT",
+    "development"
+)
+
+
+# --------------------------------------------------
+# CORS
+# --------------------------------------------------
+
+# Development currently allows browser-extension
+# requests from any origin.
+#
+# Before production deployment, replace this with
+# the approved extension/application origins.
+
+allowed_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "*"
+)
+
+if allowed_origins == "*":
+    cors_origins = ["*"]
+else:
+    cors_origins = [
+        origin.strip()
+        for origin in allowed_origins.split(",")
+        if origin.strip()
+    ]
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=[
+        "GET",
+        "POST",
+        "OPTIONS",
+    ],
+    allow_headers=[
+        "Content-Type",
+    ],
 )
 
 
@@ -43,7 +103,8 @@ class TroubleshootingRequest(BaseModel):
 @app.get("/health")
 def health_check():
     return {
-        "status": "ok"
+        "status": "ok",
+        "environment": environment,
     }
 
 
@@ -55,103 +116,90 @@ def health_check():
 def troubleshoot(
     request: TroubleshootingRequest
 ):
+    assignment = request.assignment
+
     extracted_data = {
-        "assignment": request.assignment
+        "assignment": assignment
     }
 
-    # ------------------------------------------
-    # STEP 1: RUN DETERMINISTIC CHECKS
-    # ------------------------------------------
+    # --------------------------------------------------
+    # STEP 1
+    # Run deterministic troubleshooting checks.
+    # --------------------------------------------------
 
-    findings = run_checks_on_extracted_data(
-        extracted_data
-    )
+    try:
+        findings = run_checks_on_extracted_data(
+            extracted_data
+        )
 
-    # ------------------------------------------
-    # STEP 2: ASK CREATEAI TO EXPLAIN
-    # VERIFIED FINDINGS
-    # ------------------------------------------
+    except Exception:
+        logger.exception(
+            "Deterministic troubleshooting checks failed."
+        )
+
+        findings = []
+
+
+    # --------------------------------------------------
+    # STEP 2
+    # Ask CreateAI to explain the verified evidence.
+    #
+    # CreateAI failure must NOT cause the entire
+    # troubleshooting request to fail.
+    # --------------------------------------------------
 
     ai_response = None
-    ai_error = None
+    ai_available = False
 
     try:
         ai_response = explain_diagnosis(
             reported_problem=request.problem,
             findings=findings,
-            assignment=request.assignment
+            assignment=assignment,
         )
 
-        print("CREATEAI RESPONSE:")
-        print(ai_response)
+        ai_available = True
 
-    except Exception as error:
-        print(
-            "CreateAI explanation failed:",
-            error
+    except Exception:
+        logger.exception(
+            "CreateAI explanation failed."
         )
 
-        ai_error = str(error)
 
-    # ------------------------------------------
-    # STEP 3: RETURN EVERYTHING
-    # ------------------------------------------
-
-    return {
-        "reported_problem": request.problem,
-
-        "assignment": {
-            "assignment_id": (
-                request.assignment.get(
-                    "assignment_id"
-                )
-            ),
-
-            "course_id": (
-                request.assignment.get(
-                    "course_id"
-                )
-            ),
-
-            "name": (
-                request.assignment.get(
-                    "name"
-                )
-            )
-        },
-
-        "findings": findings,
-
-        "ai_response": ai_response,
-
-        "ai_error": ai_error
-    }
-    extracted_data = {
-        "assignment": request.assignment
-    }
-
-    findings = run_checks_on_extracted_data(
-        extracted_data
-    )
+    # --------------------------------------------------
+    # STEP 3
+    # Return a stable application response.
+    # --------------------------------------------------
 
     return {
-        "reported_problem": request.problem,
+        "status": "success",
+
+        "reported_problem":
+            request.problem,
+
         "assignment": {
-            "assignment_id": (
-                request.assignment.get(
+            "assignment_id":
+                assignment.get(
                     "assignment_id"
-                )
-            ),
-            "course_id": (
-                request.assignment.get(
+                ),
+
+            "course_id":
+                assignment.get(
                     "course_id"
-                )
-            ),
-            "name": (
-                request.assignment.get(
+                ),
+
+            "name":
+                assignment.get(
                     "name"
-                )
-            )
+                ),
         },
-        "findings": findings
+
+        "findings":
+            findings,
+
+        "ai_available":
+            ai_available,
+
+        "ai_response":
+            ai_response,
     }

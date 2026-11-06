@@ -732,3 +732,39 @@ Reports
 After reading this README, inspect the current Git status and the specific file related to the requested task before suggesting code changes.
 
 The repository may have progressed beyond this README, so confirm the current implementation rather than assuming every future-planning item has already been completed.
+
+## Remote Backend Deployment
+
+### Current Setup
+
+The Chrome extension currently communicates with a FastAPI backend running locally at:
+
+`http://127.0.0.1:8000`
+
+The backend runs the Python troubleshooting logic and communicates with ASU CreateAI to generate troubleshooting guidance.
+
+Because the backend currently runs locally, the **Diagnose Problem** feature only works while the FastAPI service is running on the developer's computer.
+
+### Future Deployment
+
+For the extension to work independently from the developer's computer, the FastAPI backend will need to be deployed to an ASU-approved hosting environment.
+
+The hosted environment will need to support:
+
+- Python
+- FastAPI and Uvicorn
+- HTTPS
+- Secure environment variables
+- Outbound access to the ASU CreateAI API
+
+The CreateAI service key must remain on the backend and must not be stored in the browser extension or committed to GitHub.
+
+Once an approved backend is available, the extension's backend URL can be changed from the local development address to the hosted HTTPS address.
+
+### Backend Health Check
+
+The backend provides:
+
+`GET /health`
+
+This can be used to verify that the troubleshooting service is running before diagnosing application issues.
