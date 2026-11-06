@@ -11,233 +11,472 @@
     <title>Canvas Troubleshooter</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        .loading-result {
+        padding: 8px 0;
+        }
+
+        #resultsSection {
+         scroll-margin-top: 12px;
+        }
+
         body {
-            width: 380px;
+            width: 390px;
             margin: 0;
-            padding: 20px;
             font-family:
                 -apple-system,
                 BlinkMacSystemFont,
                 "Segoe UI",
                 sans-serif;
-            background: #f8fafc;
-            color: #172033;
+            background: #f6f7f9;
+            color: #18202c;
         }
 
-        h1 {
+        .header {
+            background: #ffffff;
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .brand-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: #18202c;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .brand-title {
             margin: 0;
-            font-size: 19px;
+            font-size: 17px;
+            font-weight: 700;
         }
 
-        .subtitle {
-            margin: 6px 0 18px;
-            color: #64748b;
-            font-size: 13px;
+        .brand-subtitle {
+            margin-top: 2px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .content {
+            padding: 16px;
+        }
+
+        .connection {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #9ca3af;
+        }
+
+        .connection.connected .connection-dot {
+            background: #16a34a;
         }
 
         .card {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
             margin-bottom: 14px;
         }
 
-        .section-title {
-            margin-bottom: 12px;
+        .activity-name {
+            margin: 0 0 4px;
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .activity-type {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            margin-top: 12px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #f3f4f6;
             font-size: 12px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: #475569;
         }
 
-        .row {
+        .status-badge.published {
+            background: #ecfdf3;
+            color: #166534;
+        }
+
+        .status-badge.unpublished {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .section-label {
+            margin: 18px 0 10px;
+            color: #6b7280;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .detail-row {
             display: flex;
             justify-content: space-between;
-            gap: 15px;
-            margin-bottom: 10px;
+            align-items: flex-start;
+            gap: 18px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f3f5;
         }
 
-        .row:last-child {
-            margin-bottom: 0;
+        .detail-row:last-child {
+            border-bottom: 0;
         }
 
-        .label {
-            color: #64748b;
+        .detail-label {
+            color: #6b7280;
             font-size: 12px;
         }
 
-        .value {
+        .detail-value {
+            max-width: 220px;
             text-align: right;
             font-size: 12px;
-            font-weight: 600;
-            max-width: 220px;
+            font-weight: 650;
             word-break: break-word;
         }
 
+        .due-date {
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .due-time {
+            margin-top: 2px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
         #status {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 95px;
+            resize: vertical;
+            border: 1px solid #d1d5db;
+            border-radius: 9px;
+            padding: 11px;
+            outline: none;
+            font-family: inherit;
             font-size: 13px;
+            line-height: 1.45;
+        }
+
+        textarea:focus {
+            border-color: #6b7280;
         }
 
         button {
             width: 100%;
             border: 0;
-            border-radius: 8px;
-            padding: 11px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: 9px;
+            padding: 12px 14px;
+            background: #18202c;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
             cursor: pointer;
-            background: #1e293b;
-            color: white;
+        }
+
+        button:hover {
+            opacity: 0.92;
         }
 
         button:disabled {
-            opacity: 0.45;
+            opacity: 0.4;
             cursor: not-allowed;
         }
 
-        textarea {
-            width: 100%;
-            min-height: 85px;
-            box-sizing: border-box;
-            resize: vertical;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: inherit;
-            font-size: 13px;
-        }
-
-        #configurationSection,
-        #problemSection {
+        #activityCard,
+        #problemSection,
+        #resultsSection {
             display: none;
         }
 
-        .success {
-            color: #166534;
-            font-weight: 600;
+        .result-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .result-item:last-child {
+            border-bottom: 0;
+        }
+
+        .result-title {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .result-severity {
+            margin-top: 4px;
+            color: #6b7280;
+            font-size: 11px;
+        }
+
+        .result-recommendation {
+            margin-top: 8px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        details {
+            margin-top: 12px;
+            border-top: 1px solid #f1f3f5;
+            padding-top: 12px;
+        }
+
+        summary {
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 650;
+        }
+
+        .technical {
+            margin-top: 10px;
+            color: #6b7280;
+            font-size: 11px;
+            line-height: 1.6;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>Canvas Troubleshooter</h1>
+    <header class="header">
+        <div class="brand">
+            <div class="brand-mark">◇</div>
 
-    <div class="subtitle">
-        Troubleshoot the Canvas activity you're viewing.
-    </div>
+            <div>
+                <h1 class="brand-title">
+                    Canvas Troubleshooter
+                </h1>
 
-    <div id="status">
-        Checking current page...
-    </div>
+                <div class="brand-subtitle">
+                    Activity diagnostics
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <div class="card">
-        <div class="section-title">
-            Detected Activity
+
+    <main class="content">
+
+        <div
+            id="connectionStatus"
+            class="connection"
+        >
+            <span class="connection-dot"></span>
+            <span id="connectionText">
+                Checking Canvas...
+            </span>
         </div>
 
-        <div class="row">
-            <span class="label">Type</span>
-            <span id="pageType" class="value">—</span>
+        <div id="status">
+            Detecting the current activity...
         </div>
 
-        <div class="row">
-            <span class="label">Course ID</span>
-            <span id="courseId" class="value">—</span>
-        </div>
 
-        <div class="row">
-            <span class="label">Activity ID</span>
-            <span id="activityId" class="value">—</span>
-        </div>
+        <section
+            id="activityCard"
+            class="card"
+        >
 
-        <div class="row">
-            <span class="label">Name</span>
-            <span id="activityName" class="value">—</span>
-        </div>
-    </div>
+            <h2
+                id="activityName"
+                class="activity-name"
+            >
+                —
+            </h2>
 
+            <div
+                id="pageType"
+                class="activity-type"
+            >
+                Assignment
+            </div>
 
-    <button id="troubleshootButton" disabled>
-        Collect Canvas Configuration
-    </button>
-
-
-    <div
-        id="configurationSection"
-        class="card"
-        style="margin-top: 14px;"
-    >
-        <div class="section-title">
-            Canvas Configuration
-        </div>
-
-        <div class="row">
-            <span class="label">Published</span>
-            <span id="published" class="value">—</span>
-        </div>
-
-        <div class="row">
-            <span class="label">Submission</span>
-            <span id="submissionType" class="value">—</span>
-        </div>
-
-        <div class="row">
-            <span class="label">Due date</span>
-            <span id="dueDate" class="value">—</span>
-        </div>
-
-        <div class="row">
-            <span class="label">Unlock date</span>
-            <span id="unlockDate" class="value">—</span>
-        </div>
-
-        <div class="row">
-            <span class="label">Lock date</span>
-            <span id="lockDate" class="value">—</span>
-        </div>
-
-        <div class="row">
-            <span class="label">External tool</span>
-            <span id="externalTool" class="value">—</span>
-        </div>
-    </div>
+            <div
+                id="publishStatus"
+                class="status-badge"
+            >
+                Status unknown
+            </div>
 
 
-    <div
-        id="problemSection"
-        style="margin-top: 14px;"
-    >
-        <div class="card">
-            <div class="section-title">
+            <div class="section-label">
+                Assignment Details
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">
+                    Assignment ID
+                </span>
+
+                <span
+                    id="activityId"
+                    class="detail-value"
+                >
+                    —
+                </span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">
+                    Course ID
+                </span>
+
+                <span
+                    id="courseId"
+                    class="detail-value"
+                >
+                    —
+                </span>
+            </div>
+
+            <div class="detail-row">
+                <span
+                    id="submissionLabel"
+                    class="detail-label"
+                >
+                    Submission Method
+                </span>
+
+                <span
+                    id="submissionType"
+                    class="detail-value"
+                >
+                    —
+                </span>
+            </div>
+
+
+            <div class="section-label">
+                Due
+            </div>
+
+            <div id="dueDate" class="due-date">
+                —
+            </div>
+
+            <div id="dueTime" class="due-time"></div>
+
+
+            <details>
+                <summary>
+                    Technical details
+                </summary>
+
+                <div class="technical">
+                    <div>
+                        Unlock:
+                        <span id="unlockDate">—</span>
+                    </div>
+
+                    <div>
+                        Lock:
+                        <span id="lockDate">—</span>
+                    </div>
+
+                    <div>
+                        External tool:
+                        <span id="externalTool">—</span>
+                    </div>
+                </div>
+            </details>
+
+        </section>
+
+
+        <button
+            id="troubleshootButton"
+            disabled
+        >
+            Collect Canvas Configuration
+        </button>
+
+
+        <section
+            id="problemSection"
+            class="card"
+        >
+
+            <div class="section-label" style="margin-top: 0;">
                 What's going wrong?
             </div>
 
             <textarea
                 id="problemInput"
-                placeholder="Example: Students can see this assignment, but the lab will not open."
+                placeholder="Describe what students are experiencing..."
             ></textarea>
-        </div>
 
-        <button id="analyzeButton">
-            Analyze Problem
-        </button>
+            <div style="height: 10px;"></div>
 
-        <div
-    id="resultsSection"
-    class="card"
-    style="display: none; margin-top: 14px;"
->
-    <div class="section-title">
-        Troubleshooting Result
-    </div>
+            <button id="analyzeButton">
+                Diagnose Problem
+            </button>
 
-    <div id="resultsContent"></div>
-</div>
-    </div>
+        </section>
+
+
+        <section
+            id="resultsSection"
+            class="card"
+        >
+
+            <div
+                class="section-label"
+                style="margin-top: 0;"
+            >
+                Result
+            </div>
+
+            <div id="resultsContent"></div>
+
+        </section>
+
+    </main>
 
     <script src="popup.js"></script>
 

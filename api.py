@@ -7,6 +7,7 @@ from troubleshooting.run_checks import (
     run_checks_on_extracted_data
 )
 
+from ai.createai_client import explain_diagnosis
 
 app = FastAPI(
     title="Canvas Troubleshooting API"
@@ -54,6 +55,77 @@ def health_check():
 def troubleshoot(
     request: TroubleshootingRequest
 ):
+    extracted_data = {
+        "assignment": request.assignment
+    }
+
+    # ------------------------------------------
+    # STEP 1: RUN DETERMINISTIC CHECKS
+    # ------------------------------------------
+
+    findings = run_checks_on_extracted_data(
+        extracted_data
+    )
+
+    # ------------------------------------------
+    # STEP 2: ASK CREATEAI TO EXPLAIN
+    # VERIFIED FINDINGS
+    # ------------------------------------------
+
+    ai_response = None
+    ai_error = None
+
+    try:
+        ai_response = explain_diagnosis(
+            reported_problem=request.problem,
+            findings=findings,
+            assignment=request.assignment
+        )
+
+        print("CREATEAI RESPONSE:")
+        print(ai_response)
+
+    except Exception as error:
+        print(
+            "CreateAI explanation failed:",
+            error
+        )
+
+        ai_error = str(error)
+
+    # ------------------------------------------
+    # STEP 3: RETURN EVERYTHING
+    # ------------------------------------------
+
+    return {
+        "reported_problem": request.problem,
+
+        "assignment": {
+            "assignment_id": (
+                request.assignment.get(
+                    "assignment_id"
+                )
+            ),
+
+            "course_id": (
+                request.assignment.get(
+                    "course_id"
+                )
+            ),
+
+            "name": (
+                request.assignment.get(
+                    "name"
+                )
+            )
+        },
+
+        "findings": findings,
+
+        "ai_response": ai_response,
+
+        "ai_error": ai_error
+    }
     extracted_data = {
         "assignment": request.assignment
     }
