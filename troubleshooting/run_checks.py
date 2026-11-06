@@ -10,6 +10,10 @@ from troubleshooting.module_checks import (
     check_module_items
 )
 
+from troubleshooting.module_checks import (
+    check_assignment_module_context,
+)
+
 from troubleshooting.lti_checks import check_lti_configuration
 
 def run_all_checks(assignment, modules=None):
@@ -31,6 +35,12 @@ def run_all_checks(assignment, modules=None):
 
     all_findings.extend(
         check_submission_type(assignment)
+    )
+
+    all_findings.extend(
+        check_assignment_module_context(
+            assignment
+        )
     )
 
     # Module checks

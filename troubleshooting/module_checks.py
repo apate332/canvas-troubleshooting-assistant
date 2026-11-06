@@ -77,3 +77,72 @@ def check_module_items(module):
             })
 
     return findings
+
+
+def check_assignment_module_context(assignment):
+    """
+    Check the module containing the current assignment.
+
+    Module context is only evaluated when it was
+    successfully collected by the browser extension.
+    """
+
+    findings = []
+
+    if not isinstance(assignment, dict):
+        return findings
+
+    module_context = assignment.get(
+        "module_context"
+    )
+
+    # Module context was not available.
+    # This does NOT mean the assignment is not in a module.
+    if not isinstance(module_context, dict):
+        return findings
+
+    module_name = module_context.get(
+        "module_name",
+        "Containing module"
+    )
+
+    module_published = module_context.get(
+        "module_published"
+    )
+
+    module_item_published = module_context.get(
+        "module_item_published"
+    )
+
+    # --------------------------------------------------
+    # MODULE UNPUBLISHED
+    # --------------------------------------------------
+
+    if module_published is False:
+        findings.append({
+            "issue": "Containing module is unpublished",
+            "severity": "Warning",
+            "recommendation": (
+                f'The assignment is inside "{module_name}", '
+                "which is currently unpublished. "
+                "Publish the module if students are expected "
+                "to access this activity through Modules."
+            )
+        })
+
+    # --------------------------------------------------
+    # MODULE ITEM UNPUBLISHED
+    # --------------------------------------------------
+
+    if module_item_published is False:
+        findings.append({
+            "issue": "Module item is unpublished",
+            "severity": "Warning",
+            "recommendation": (
+                "The assignment's module item is currently "
+                "unpublished. Publish the module item if "
+                "students should access it through the module."
+            )
+        })
+
+    return findings

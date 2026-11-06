@@ -11,6 +11,9 @@ from ai.createai_client import explain_diagnosis
 from troubleshooting.run_checks import (
     run_checks_on_extracted_data,
 )
+from troubleshooting.problem_classifier import (
+    classify_problem,
+)
 
 load_dotenv()
 
@@ -118,6 +121,10 @@ def troubleshoot(
 ):
     assignment = request.assignment
 
+    problem_type = classify_problem(
+    request.problem
+    )
+
     extracted_data = {
         "assignment": assignment
     }
@@ -152,13 +159,14 @@ def troubleshoot(
     ai_available = False
 
     try:
-        ai_response = explain_diagnosis(
+       ai_response = explain_diagnosis(
             reported_problem=request.problem,
+            problem_type=problem_type,
             findings=findings,
             assignment=assignment,
         )
 
-        ai_available = True
+       ai_available = True
 
     except Exception:
         logger.exception(
@@ -168,11 +176,30 @@ def troubleshoot(
 
     # --------------------------------------------------
     # STEP 3
-    # Return a stable application response.
+    # Extract only the structured CreateAI response.
+    # --------------------------------------------------
+
+    diagnosis = None
+
+    if (
+        ai_response
+        and isinstance(ai_response, dict)
+    ):
+        diagnosis = ai_response.get(
+            "response"
+        )
+
+
+    # --------------------------------------------------
+    # STEP 4
+    # Return the application response.
     # --------------------------------------------------
 
     return {
         "status": "success",
+
+        "problem_type":
+            problem_type,
 
         "reported_problem":
             request.problem,
@@ -200,6 +227,7 @@ def troubleshoot(
         "ai_available":
             ai_available,
 
-        "ai_response":
-            ai_response,
+        "ai_response": {
+            "response": diagnosis
+        } if diagnosis else None,
     }

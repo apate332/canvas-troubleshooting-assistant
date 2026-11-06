@@ -86,6 +86,13 @@ def build_canvas_context(assignment):
         "external_tool"
     )
 
+    module_context = assignment.get(
+    "module_context"
+    )
+
+    if not isinstance(module_context, dict):
+        module_context = {}
+
     return {
         "assignment_name":
             assignment.get("name"),
@@ -135,12 +142,51 @@ def build_canvas_context(assignment):
             assignment.get("points_possible"),
 
         "grading_type":
-            assignment.get("grading_type")
+            assignment.get("grading_type"),
+
+        "module_context_available":
+            bool(module_context),
+
+        "module_name":
+            module_context.get(
+                "module_name"
+            ),
+
+        "module_published":
+            module_context.get(
+                "module_published"
+            ),
+
+        "module_item_published":
+            module_context.get(
+                "module_item_published"
+            ),
+
+        "module_item_title":
+           module_context.get(
+                "module_item_title"
+            ),
+
+        "require_sequential_progress":
+            module_context.get(
+                "require_sequential_progress"
+            ),
+
+        "module_unlock_at":
+            format_arizona_datetime(
+                module_context.get(
+                    "module_unlock_at"
+                )
+            )
+   
+    if module_context
+    else "Not verified",
     }
 
 
 def explain_diagnosis(
     reported_problem,
+    problem_type,
     findings,
     assignment
 ):
@@ -175,8 +221,34 @@ USER QUESTION OR REPORTED PROBLEM:
 
 {reported_problem}
 
+PROBLEM TYPE:
+
+{problem_type}
 
 VERIFIED CANVAS INFORMATION:
+
+MODULE CONTEXT:
+
+Module context available:
+{canvas_context["module_context_available"]}
+
+Module name:
+{canvas_context["module_name"]}
+
+Module published:
+{canvas_context["module_published"]}
+
+Module item published:
+{canvas_context["module_item_published"]}
+
+Module item title:
+{canvas_context["module_item_title"]}
+
+Sequential progression required:
+{canvas_context["require_sequential_progress"]}
+
+Module unlock date:
+{canvas_context["module_unlock_at"]}
 
 Assignment name:
 {canvas_context["assignment_name"]}
@@ -255,6 +327,21 @@ speculative causes.
 If no confirmed cause exists, provide the most useful
 preliminary troubleshooting step instead of simply saying
 that no issue was found.
+
+Prioritize information that is directly relevant to the
+user's reported problem.
+
+Do not include every verified Canvas fact in the main answer.
+Use the "verified" field for supporting evidence when useful.
+
+Only mention the assignment due date when:
+- the user asks about the due date,
+- the due date is directly relevant to the reported problem, or
+- the due date materially affects the recommended next step.
+
+Do not present a past due date as an access restriction.
+A due date alone does not mean an assignment is locked or
+unavailable.
 
 Never claim an external learning tool is broken merely
 because the assignment uses one.
